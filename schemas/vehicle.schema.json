@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "shark-logistics/vehicle",
+  "title": "Vehicle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["vehicle_id", "vehicle_type", "status", "capacity_lb"],
+  "properties": {
+    "vehicle_id": {"type": "string", "minLength": 1},
+    "vehicle_type": {"type": "string", "enum": ["box_truck", "semi", "van", "pickup", "other"]},
+    "status": {"type": "string", "enum": ["available", "assigned", "in_transit", "maintenance", "inactive"]},
+    "capacity_lb": {"type": "number", "exclusiveMinimum": 0},
+    "cargo_volume_cuft": {"type": "number", "exclusiveMinimum": 0},
+    "fuel_type": {"type": "string"},
+    "fuel_economy_mpg": {"type": "number", "exclusiveMinimum": 0},
+    "current_location": {"$ref": "location.schema.json"},
+    "odometer_miles": {"type": "number", "minimum": 0}
+  }
+}
