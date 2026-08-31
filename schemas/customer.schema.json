@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "shark-logistics/customer",
+  "title": "Customer",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["customer_id", "name"],
+  "properties": {
+    "customer_id": {"type": "string", "minLength": 1},
+    "name": {"type": "string", "minLength": 1},
+    "company": {"type": "string"},
+    "phone": {"type": "string"},
+    "email": {"type": "string", "format": "email"},
+    "billing_address": {"$ref": "location.schema.json"},
+    "service_notes": {"type": "array", "items": {"type": "string"}}
+  }
+}
