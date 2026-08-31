@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "shark-logistics/time-window",
+  "title": "Time Window",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["start", "end"],
+  "properties": {
+    "start": {"type": "string", "format": "date-time"},
+    "end": {"type": "string", "format": "date-time"},
+    "timezone": {"type": "string"}
+  }
+}
