@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "shark-logistics/shipment",
+  "title": "Shipment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["shipment_id", "origin", "destination", "status"],
+  "properties": {
+    "shipment_id": {"type": "string", "minLength": 1},
+    "customer_id": {"type": "string", "minLength": 1},
+    "origin": {"$ref": "location.schema.json"},
+    "destination": {"$ref": "location.schema.json"},
+    "pickup_window": {"$ref": "time_window.schema.json"},
+    "delivery_window": {"$ref": "time_window.schema.json"},
+    "weight_lb": {"type": "number", "minimum": 0},
+    "length_in": {"type": "number", "exclusiveMinimum": 0},
+    "width_in": {"type": "number", "exclusiveMinimum": 0},
+    "height_in": {"type": "number", "exclusiveMinimum": 0},
+    "commodity": {"type": "string"},
+    "special_requirements": {"type": "array", "items": {"type": "string"}},
+    "status": {
+      "type": "string",
+      "enum": ["draft", "ready", "assigned", "in_transit", "delivered", "cancelled"]
+    }
+  }
+}
