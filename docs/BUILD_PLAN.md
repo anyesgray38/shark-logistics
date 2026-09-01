@@ -33,7 +33,7 @@
 - fleet economics
 - deterministic economics tests
 
-## Build 04 — Dispatch — NEXT
+## Build 04 — Dispatch — COMPLETE
 
 - vehicle assignment
 - time-window constraints
@@ -41,9 +41,10 @@
 - multi-stop planning
 - dispatch scoring
 - feasibility validation
-- dispatch audit gate
+- independent dispatch audit gate
+- deterministic dispatch tests
 
-## Build 05 — Tracking
+## Build 05 — Tracking — NEXT
 
 - shipment lifecycle
 - status events
