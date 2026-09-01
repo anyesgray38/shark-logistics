@@ -1,6 +1,6 @@
 # Build Plan
 
-## Build 01 — Core foundation
+## Build 01 — Core foundation — COMPLETE
 
 - domain schemas
 - shipment intake model
@@ -11,15 +11,17 @@
 - audit events
 - test fixtures
 
-## Build 02 — Routing
+## Build 02 — Routing — COMPLETE
 
 - distance calculation
 - route abstraction
 - travel-time model
 - route alternatives
 - deadhead calculation
+- provider adapter boundary
+- routing tests
 
-## Build 03 — Fleet economics
+## Build 03 — Fleet economics — COMPLETE
 
 - fuel model
 - driver cost
@@ -27,14 +29,19 @@
 - insurance allocation
 - maintenance allocation
 - cost per mile/hour/load
+- load economics
+- fleet economics
+- deterministic economics tests
 
-## Build 04 — Dispatch
+## Build 04 — Dispatch — NEXT
 
 - vehicle assignment
 - time-window constraints
 - capacity constraints
 - multi-stop planning
 - dispatch scoring
+- feasibility validation
+- dispatch audit gate
 
 ## Build 05 — Tracking
 
@@ -66,3 +73,25 @@
 - profitability
 - exceptions
 - audit history
+
+## Build 09 — Agent operating layer
+
+- orchestrator runtime
+- planner
+- researcher
+- analyst
+- executor
+- auditor
+- evidence ledger
+- workflow state
+- permission gates
+
+## Build 10 — Customer platform
+
+- customer onboarding
+- shipment quote request
+- booking workflow
+- customer tracking
+- document center
+- notifications
+- account portal
