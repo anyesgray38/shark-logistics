@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from logistics.dispatch import DispatchConfig, assign_best_vehicle, check_feasibility, plan_multi_stop
+from logistics.dispatch import DispatchConfig, assign_best_vehicle, audit_candidate, check_feasibility, plan_multi_stop, score_candidate
 from logistics.models import Location, Shipment, TimeWindow, Vehicle, VehicleStatus
 from logistics.routing import GeodesicRouteProvider, SpeedModel
 
@@ -37,24 +37,14 @@ def truck(weight=10000, status=VehicleStatus.AVAILABLE) -> Vehicle:
 
 def test_capacity_is_a_hard_constraint():
     provider = GeodesicRouteProvider(SpeedModel(average_mph=50))
-    result = check_feasibility(
-        truck(weight=500),
-        shipment(weight=1000),
-        datetime(2026, 9, 1, 8, tzinfo=timezone.utc),
-        provider,
-    )
+    result = check_feasibility(truck(weight=500), shipment(weight=1000), datetime(2026, 9, 1, 8, tzinfo=timezone.utc), provider)
     assert not result.feasible
     assert "WEIGHT_CAPACITY_EXCEEDED" in result.reasons
 
 
 def test_unavailable_vehicle_is_rejected():
     provider = GeodesicRouteProvider()
-    result = check_feasibility(
-        truck(status=VehicleStatus.MAINTENANCE),
-        shipment(),
-        datetime(2026, 9, 1, 8, tzinfo=timezone.utc),
-        provider,
-    )
+    result = check_feasibility(truck(status=VehicleStatus.MAINTENANCE), shipment(), datetime(2026, 9, 1, 8, tzinfo=timezone.utc), provider)
     assert not result.feasible
     assert "VEHICLE_NOT_AVAILABLE" in result.reasons
 
@@ -62,12 +52,8 @@ def test_unavailable_vehicle_is_rejected():
 def test_best_vehicle_assignment_prefers_lower_deadhead():
     provider = GeodesicRouteProvider(SpeedModel(average_mph=50))
     start = datetime(2026, 9, 1, 8, tzinfo=timezone.utc)
-    near = truck()
-    near.vehicle_id = "A"
-    near.current_location = location("Near", 33.74, -84.38)
-    far = truck()
-    far.vehicle_id = "B"
-    far.current_location = location("Far", 34.20, -84.80)
+    near = truck(); near.vehicle_id = "A"; near.current_location = location("Near", 33.74, -84.38)
+    far = truck(); far.vehicle_id = "B"; far.current_location = location("Far", 34.20, -84.80)
     result = assign_best_vehicle(shipment(), [far, near], start, provider)
     assert result is not None
     assert result.vehicle.vehicle_id == "A"
@@ -76,10 +62,7 @@ def test_best_vehicle_assignment_prefers_lower_deadhead():
 def test_time_window_miss_blocks_dispatch():
     provider = GeodesicRouteProvider(SpeedModel(average_mph=20))
     s = shipment()
-    s.pickup_window = TimeWindow(
-        datetime(2026, 9, 1, 8, tzinfo=timezone.utc),
-        datetime(2026, 9, 1, 8, minute=1, tzinfo=timezone.utc),
-    )
+    s.pickup_window = TimeWindow(datetime(2026, 9, 1, 8, tzinfo=timezone.utc), datetime(2026, 9, 1, 8, minute=1, tzinfo=timezone.utc))
     result = check_feasibility(truck(), s, datetime(2026, 9, 1, 8, tzinfo=timezone.utc), provider)
     assert not result.feasible
     assert "PICKUP_WINDOW_MISSED" in result.reasons
@@ -93,6 +76,19 @@ def test_multi_stop_plan_is_deterministic_and_delivers_each_selected_load():
     assert plan.total_miles > 0
     assert plan.estimated_revenue == pytest.approx(3000)
     assert len(plan.candidates) == 2
+
+
+def test_dispatch_audit_gate_passes_valid_candidate():
+    provider = GeodesicRouteProvider()
+    start = datetime(2026, 9, 1, 8, tzinfo=timezone.utc)
+    vehicle = truck()
+    s = shipment()
+    feasibility = check_feasibility(vehicle, s, start, provider)
+    candidate = score_candidate(vehicle, s, feasibility, start, DispatchConfig())
+    audit = audit_candidate(candidate)
+    assert audit.passed
+    assert "FEASIBILITY_PASSED" in audit.checks
+    assert not audit.errors
 
 
 def test_dispatch_config_rejects_all_zero_weights():
