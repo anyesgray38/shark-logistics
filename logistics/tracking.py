@@ -46,6 +46,13 @@ class TrackingSnapshot:
     event_count: int
 
 
+@dataclass(frozen=True)
+class TrackingAudit:
+    passed: bool
+    checks: tuple[str, ...]
+    errors: tuple[str, ...]
+
+
 class TrackingProvider(Protocol):
     """Adapter contract for external tracking providers."""
 
@@ -77,10 +84,10 @@ def reduce_tracking(shipment: Shipment, events: list[TrackingEvent] | tuple[Trac
             raise ValueError("DUPLICATE_TRACKING_EVENT")
         if previous_time is not None and event.occurred_at < previous_time:
             raise ValueError("OUT_OF_ORDER_TRACKING_EVENT")
-        if event.status not in legal_transitions(current):
-            raise ValueError(f"ILLEGAL_STATUS_TRANSITION:{current.value}->{event.status.value}")
         if event.occurred_at.tzinfo is None:
             raise ValueError("TRACKING_TIMESTAMP_MUST_BE_TIMEZONE_AWARE")
+        if event.status not in legal_transitions(current):
+            raise ValueError(f"ILLEGAL_STATUS_TRANSITION:{current.value}->{event.status.value}")
         if event.eta is not None:
             if event.eta.estimated_arrival.tzinfo is None:
                 raise ValueError("ETA_TIMESTAMP_MUST_BE_TIMEZONE_AWARE")
@@ -112,17 +119,10 @@ def audit_tracking(shipment: Shipment, events: list[TrackingEvent] | tuple[Track
     try:
         snapshot = reduce_tracking(shipment, events)
         checks.extend(("SHIPMENT_MATCHED", "EVENT_ORDER_VALID", "STATUS_TRANSITIONS_VALID"))
-        if snapshot.eta is not None and snapshot.eta.estimated_arrival < snapshot.latest_event.occurred_at:
+        if snapshot.eta is not None and snapshot.latest_event is not None and snapshot.eta.estimated_arrival < snapshot.latest_event.occurred_at:
             errors.append("ETA_BEFORE_LATEST_EVENT")
         if snapshot.eta is not None and snapshot.eta.confidence is not None and not math.isfinite(snapshot.eta.confidence):
             errors.append("NON_FINITE_ETA_CONFIDENCE")
     except ValueError as exc:
         errors.append(str(exc))
     return TrackingAudit(not errors, tuple(checks), tuple(errors))
-
-
-@dataclass(frozen=True)
-class TrackingAudit:
-    passed: bool
-    checks: tuple[str, ...]
-    errors: tuple[str, ...]
