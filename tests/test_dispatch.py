@@ -78,7 +78,7 @@ def test_time_window_miss_blocks_dispatch():
     s = shipment()
     s.pickup_window = TimeWindow(
         datetime(2026, 9, 1, 8, tzinfo=timezone.utc),
-        datetime(2026, 9, 1, 8, minutes=1, tzinfo=timezone.utc),
+        datetime(2026, 9, 1, 8, minute=1, tzinfo=timezone.utc),
     )
     result = check_feasibility(truck(), s, datetime(2026, 9, 1, 8, tzinfo=timezone.utc), provider)
     assert not result.feasible
