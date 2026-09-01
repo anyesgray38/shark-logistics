@@ -93,4 +93,4 @@ def test_dispatch_audit_gate_passes_valid_candidate():
 
 def test_dispatch_config_rejects_all_zero_weights():
     with pytest.raises(ValueError):
-        DispatchConfig(0, 0, 0, 0, 0).validate()
+        DispatchConfig(0, 0, 0, 0, 0, 0).validate()
