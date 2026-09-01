@@ -44,14 +44,17 @@
 - independent dispatch audit gate
 - deterministic dispatch tests
 
-## Build 05 — Tracking — NEXT
+## Build 05 — Tracking — COMPLETE
 
 - shipment lifecycle
-- status events
+- immutable status events
+- deterministic tracking reducer
 - ETA abstraction
-- provider adapters
+- provider adapter boundary
+- independent tracking audit gate
+- deterministic tracking tests
 
-## Build 06 — Commercial intelligence
+## Build 06 — Commercial intelligence — NEXT
 
 - load intake
 - customer scoring
