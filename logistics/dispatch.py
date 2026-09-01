@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+import math
 
 from .economics import CostInputs, load_economics
 from .models import Shipment, Vehicle, VehicleStatus
@@ -53,6 +54,13 @@ class DispatchCandidate:
     feasibility: DispatchFeasibility
     score: float
     estimated_profit: float
+
+
+@dataclass(frozen=True)
+class DispatchAudit:
+    passed: bool
+    checks: tuple[str, ...]
+    errors: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -180,6 +188,25 @@ def score_candidate(
     return DispatchCandidate(vehicle, shipment, feasibility, score, economics_profit)
 
 
+def audit_candidate(candidate: DispatchCandidate) -> DispatchAudit:
+    """Independent deterministic gate for a proposed dispatch assignment."""
+    checks: list[str] = []
+    errors: list[str] = []
+    if not candidate.feasibility.feasible:
+        errors.extend(candidate.feasibility.reasons)
+    else:
+        checks.append("FEASIBILITY_PASSED")
+    if candidate.feasibility.deadhead_miles < 0 or candidate.feasibility.loaded_miles < 0:
+        errors.append("NEGATIVE_DISTANCE")
+    if candidate.feasibility.travel_minutes < 0:
+        errors.append("NEGATIVE_TRAVEL_TIME")
+    if not math.isfinite(candidate.score):
+        errors.append("NON_FINITE_SCORE")
+    if candidate.estimated_profit < -abs(candidate.shipment.revenue):
+        errors.append("PROFIT_RECONCILIATION_FAILED")
+    return DispatchAudit(not errors, tuple(checks), tuple(errors))
+
+
 def assign_best_vehicle(
     shipment: Shipment,
     vehicles: list[Vehicle],
@@ -200,7 +227,7 @@ def assign_best_vehicle(
         )
         for vehicle in vehicles
     ]
-    feasible = [candidate for candidate in candidates if candidate.feasibility.feasible]
+    feasible = [candidate for candidate in candidates if candidate.feasibility.feasible and audit_candidate(candidate).passed]
     if not feasible:
         return None
     return max(feasible, key=lambda candidate: (candidate.score, candidate.estimated_profit, -candidate.feasibility.deadhead_miles, candidate.vehicle.vehicle_id))
@@ -248,7 +275,7 @@ def plan_multi_stop(
                 config,
                 cost_inputs,
             )
-            if candidate.feasibility.feasible:
+            if candidate.feasibility.feasible and audit_candidate(candidate).passed:
                 feasible_candidates.append(candidate)
         if not feasible_candidates:
             break
