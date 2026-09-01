@@ -54,15 +54,16 @@
 - independent tracking audit gate
 - deterministic tracking tests
 
-## Build 06 — Commercial intelligence — NEXT
+## Build 06 — Commercial intelligence — COMPLETE
 
-- load intake
+- load economics quote layer
 - customer scoring
-- lane profitability
-- rate analysis
+- lane rate analysis
 - opportunity ranking
+- independent commercial audit gate
+- deterministic commercial tests
 
-## Build 07 — Fleet scaling
+## Build 07 — Fleet scaling — NEXT
 
 - multi-vehicle simulation
 - utilization
