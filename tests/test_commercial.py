@@ -58,7 +58,8 @@ def test_opportunity_accepts_strong_positive_load():
 
 
 def test_negative_profit_is_rejected():
-    q = quote_load(load(10), GeodesicRouteProvider(), costs())
+    q = quote_load(load(0), GeodesicRouteProvider(), costs())
+    assert q.estimated_profit < 0
     ranking = rank_opportunity(q)
     assert ranking.decision == "reject"
 
